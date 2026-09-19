@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIXELCRAFT // Cyber Quantum Engine v4.0</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Orbitron:wght@400;600;800;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Volumetric Voxels -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            black: '#020408',
+                            dark: '#060a12',
+                            panel: '#0c1322',
+                            card: '#121b2d',
+                            border: '#1e2d4a',
+                            highlight: '#2a3f68',
+                            accent: '#a855f7',
+                            cyan: '#00f0ff',
+                            pink: '#ff0055',
+                            neonGreen: '#00ff66',
+                            yellow: '#ffcc00',
+                            matrix: '#00ff41',
+                            holo: '#38bdf8'
+                        }
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'cursive'],
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        cyber: ['Orbitron', 'sans-serif'],
+                        code: ['"Fira Code"', 'monospace']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'scanline': 'scanline 4s linear infinite',
+                        'radar': 'radarSweep 3s linear infinite',
+                        'quantum-pulse': 'quantumPulse 1.5s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.5', filter: 'drop-shadow(0 0 10px rgba(0,240,255,0.8))' },
+                            '50%': { opacity: '1', filter: 'drop-shadow(0 0 25px rgba(255,0,85,0.9))' }
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(1200%)' }
+                        },
+                        radarSweep: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' }
+                        },
+                        quantumPulse: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+                            '50%': { transform: 'scale(1.05)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020408;
+            color: #f1f5f9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.15), transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.1), transparent 45%),
+                radial-gradient(circle at 15% 80%, rgba(255, 0, 85, 0.08), transparent 40%);
+        }
+
+        /* High-Tech Checkerboard Canvas Pattern */
+        .checkerboard-grid {
+            background-color: #060b17;
+            background-image: 
+                linear-gradient(45deg, #0e172a 25%, transparent 25%), 
+                linear-gradient(-45deg, #0e172a 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #0e172a 75%), 
+                linear-gradient(-45deg, transparent 75%, #0e172a 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+        }
+
+        .pixel-art {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* CRT Shader Overlay */
+        .crt-shader::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+            z-index: 10;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Shaders & Chromatic Filters */
+        .rgb-shift-active {
+            filter: drop-shadow(-3px 0 0 #ff0055) drop-shadow(3px 0 0 #00f0ff);
+        }
+
+        .bloom-active {
+            filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.9)) brightness(1.2);
+        }
+
+        /* Holographic Card Reflection */
+        .holo-card-reflection {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 60%);
+            transition: all 0.1s ease-out;
+        }
+
+        /* Tech HUD Corners */
+        .hud-corner-box {
+            position: relative;
+        }
+        .hud-corner-box::before {
+            content: ''; position: absolute; top: -1px; left: -1px; width: 8px; height: 8px;
+            border-top: 2px solid #00f0ff; border-left: 2px solid #00f0ff; pointer-events: none;
+        }
+        .hud-corner-box::after {
+            content: ''; position: absolute; bottom: -1px; right: -1px; width: 8px; height: 8px;
+            border-bottom: 2px solid #ff0055; border-right: 2px solid #ff0055; pointer-events: none;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #020408; }
+        ::-webkit-scrollbar-thumb { background: #1e2d4a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-cyber-black text-slate-100 selection:bg-cyan-500 selection:text-black">
+
+    <header class="w-full bg-cyber-panel/90 backdrop-blur-md border-b border-cyber-border sticky top-0 z-50 shadow-2xl shadow-cyan-950/30">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            
+            <!-- Quantum Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('home')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-purple-600 to-pink-500 p-0.5 shadow-lg shadow-cyan-500/30 relative group">
+                    <div class="w-full h-full bg-cyber-black rounded-[10px] flex items-center justify-center text-cyan-400 font-pixel text-xs">
+                        <i class="fa-solid fa-atom text-sm group-hover:rotate-180 transition duration-700"></i>
+                    </div>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full animate-ping"></span>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-cyber font-black text-base tracking-wider bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">PIXELCRAFT</span>
+                        <span class="text-[9px] font-mono bg-cyan-950 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-800">v4.0 HYPER-MATRIX</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 font-mono tracking-widest uppercase">QUANTUM SYNTH: <span class="text-cyan-400">SYNCHRONIZED</span></p>
+                </div>
+            </div>
+
+            <!-- View Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-1 bg-cyber-dark/90 p-1 rounded-xl border border-cyber-border text-xs font-mono">
+                <button onclick="switchView('home')" id="navHomeBtn" class="nav-btn px-3 py-1.5 rounded-lg text-cyan-400 bg-cyber-card border border-cyan-500/30 flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-terminal text-xs"></i><span>01 // HUB</span>
+                </button>
+                <button onclick="switchView('studio')" id="navStudioBtn" class="nav-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-paintbrush text-xs"></i><span>02 // STUDIO</span>
+                </button>
+                <button onclick="switchView('holo')" id="navHoloBtn" class="nav-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-cubes text-xs"></i><span>03 // 3D VOXEL</span>
+                </button>
+                <button onclick="switchView('card')" id="navCardBtn" class="nav-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-id-card text-xs"></i><span>04 // ID LAB</span>
+                </button>
+                <button onclick="switchView('gallery')" id="navGalleryBtn" class="nav-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-database text-xs"></i><span>05 // ARCHIVE</span>
+                </button>
+            </nav>
+
+            <!-- Sci-Fi HUD Audio & Terminal Toggles -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleTerminalModal()" class="p-2 bg-cyber-card border border-cyber-border rounded-lg text-cyan-400 hover:bg-cyber-border transition" title="Open Sci-Fi CLI Terminal">
+                    <i class="fa-solid fa-terminal text-xs"></i>
+                </button>
+
+                <select id="synthWaveType" onchange="changeSynthWave(this.value)" class="hidden sm:block bg-cyber-black border border-cyber-border text-cyan-300 font-mono text-[10px] rounded px-1.5 py-1">
+                    <option value="sine">SYNTH: SINE</option>
+                    <option value="square">SYNTH: SQUARE</option>
+                    <option value="sawtooth">SYNTH: SAW</option>
+                    <option value="triangle">SYNTH: TRIANGLE</option>
+                </select>
+
+                <button id="bgDroneBtn" onclick="toggleAmbientHum()" class="p-2 bg-cyber-card border border-cyber-border rounded-lg text-slate-400 hover:text-cyan-400 transition" title="Toggle Ambient Quantum Drone">
+                    <i id="bgDroneIcon" class="fa-solid fa-radio text-slate-500"></i>
+                </button>
+
+                <button id="sfxToggleBtn" onclick="toggleAudioSFX()" class="p-2 bg-cyber-card border border-cyber-border rounded-lg text-slate-300 hover:text-cyan-400 transition" title="Toggle Audio Synthesizer">
+                    <i id="sfxIcon" class="fa-solid fa-volume-high text-cyan-400"></i>
+                </button>
+
+                <button onclick="switchView('studio')" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:from-cyan-400 hover:to-pink-400 text-white font-cyber font-bold text-xs rounded-lg shadow-lg shadow-purple-500/20 active:scale-95 transition flex items-center space-x-2">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span class="hidden sm:inline">STUDIO ENGINE</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="cliTerminalModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-cyber-panel border-2 border-cyan-500 rounded-2xl shadow-2xl p-4 font-code text-xs space-y-3 hud-corner-box">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2 text-cyan-400">
+                <span class="flex items-center space-x-2">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>CYBER COMMAND LINE INTERFACE (CLI v4.0)</span>
+                </span>
+                <button onclick="toggleTerminalModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="cliOutputLog" class="h-64 overflow-y-auto space-y-1 bg-cyber-black p-3 rounded-lg border border-cyber-border text-slate-300 font-mono text-[11px]">
+                <p class="text-cyan-400">> PIXELCRAFT QUANTUM KERNEL INITIALIZED.</p>
+                <p class="text-slate-400">> Type <span class="text-yellow-400">/help</span> for system commands.</p>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-cyber-dark p-2 rounded-lg border border-cyber-border">
+                <span class="text-cyan-400 font-bold">></span>
+                <input type="text" id="cliInputField" onkeydown="handleCliCommand(event)" placeholder="Enter command e.g., /gen archetype=mech or /mutate..." class="w-full bg-transparent text-white focus:outline-none font-code text-xs">
+            </div>
+        </div>
+    </div>
+
+    <main id="homeView" class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 space-y-12">
+        
+        <!-- Hero Section -->
+        <section class="relative rounded-3xl bg-gradient-to-b from-cyber-panel to-cyber-dark border border-cyber-border p-6 md:p-12 overflow-hidden shadow-2xl hud-corner-box">
+            <!-- Matrix Rain Canvas Background -->
+            <canvas id="matrixCanvas" class="absolute inset-0 opacity-20 pointer-events-none w-full h-full"></canvas>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                <!-- Hero Content -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/90 border border-cyan-500/40 text-cyan-300 text-xs font-mono">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                        <span>HYPER-MATRIX QUANTUM ENGINE ONLINE</span>
+                    </div>
+
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight font-cyber">
+                        VOLUMETRIC <br>
+                        <span class="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-500 bg-clip-text text-transparent font-pixel text-2xl sm:text-4xl">
+                            PIXEL MATRIX
+                        </span>
+                        <br>Next-Gen Avatar Engine
+                    </h1>
+
+                    <p class="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl">
+                        Design pixel sprites with multi-layer precision, 3D volumetric voxel extrusions, interactive Web Audio synthesizers, procedural cellular automata growth, and holographic gamer cards.
+                    </p>
+
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="switchView('studio')" class="px-6 py-3.5 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:from-cyan-400 hover:to-pink-400 text-white font-cyber font-bold text-xs rounded-xl shadow-xl shadow-cyan-500/20 active:scale-95 transition flex items-center space-x-3">
+                            <i class="fa-solid fa-paintbrush"></i>
+                            <span>LAUNCH STUDIO ENGINE</span>
+                        </button>
+                        <button onclick="switchView('holo')" class="px-6 py-3.5 bg-cyber-card hover:bg-cyber-border border border-cyber-border text-slate-200 font-cyber font-semibold text-xs rounded-xl transition flex items-center space-x-2">
+                            <i class="fa-solid fa-cubes text-cyan-400"></i>
+                            <span>3D VOXEL PROJECTION</span>
+                        </button>
+                    </div>
+
+                    <!-- Telemetry HUD Grid -->
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-cyber-border font-mono text-xs">
+                        <div>
+                            <p class="text-slate-400">VOXEL ENGINE</p>
+                            <p class="text-lg font-bold text-cyan-400">THREE.JS 3D</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">AUDIO SYNTH</p>
+                            <p class="text-lg font-bold text-purple-400">THEREMIN SFX</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">QUANTUM AI</p>
+                            <p class="text-lg font-bold text-pink-400">CELLULAR LIFE</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Hero Preview Card -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-full max-w-[340px] aspect-square bg-cyber-panel rounded-2xl border-2 border-cyan-500/40 p-4 shadow-2xl flex flex-col items-center justify-between group hud-corner-box">
+                        <div class="w-full flex justify-between items-center text-xs font-mono text-cyan-400">
+                            <span><i class="fa-solid fa-circle text-[8px] text-cyan-400 animate-pulse mr-1"></i>QUANTUM MATRIX</span>
+                            <span>32x32 MULTI-LAYER</span>
+                        </div>
+
+                        <!-- Canvas Holder -->
+                        <div class="w-64 h-64 checkerboard-grid rounded-xl border border-cyber-border overflow-hidden relative shadow-inner crt-shader">
+                            <canvas id="heroCanvas" width="32" height="32" class="w-full h-full pixel-art"></canvas>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center text-xs text-slate-400 font-mono">
+                            <button onclick="triggerHeroAIGen()" class="text-xs text-purple-400 hover:text-purple-300 flex items-center space-x-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>RE-GENERATE QUANTUM</span>
+                            </button>
+                            <span class="text-[10px] bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800">AI SEED v4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Matrix Showcase -->
+        <section class="space-y-8">
+            <div class="text-center space-y-2">
+                <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">[ HIGH-TECH ARCHITECTURE ]</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-cyber">QUANTUM FEATURE SUITE</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-cyber-panel border border-cyber-border rounded-2xl p-6 space-y-3 hover:border-cyan-500/50 transition hud-corner-box">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-950 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-cubes"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white font-cyber">Volumetric 3D Voxels</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Extrude 2D pixel avatars into 3D solid cubic voxels with interactive camera controls, explosion physics disassembly, and wireframes.
+                    </p>
+                </div>
+
+                <div class="bg-cyber-panel border border-cyber-border rounded-2xl p-6 space-y-3 hover:border-purple-500/50 transition hud-corner-box">
+                    <div class="w-12 h-12 rounded-xl bg-purple-950 border border-purple-500/40 text-purple-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-wave-square"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white font-cyber">Web Audio Theremin</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Synthesizes pitch directly from cursor canvas coordinates while drawing, offering real-time acoustic feedback and cyber drone pads.
+                    </p>
+                </div>
+
+                <div class="bg-cyber-panel border border-cyber-border rounded-2xl p-6 space-y-3 hover:border-pink-500/50 transition hud-corner-box">
+                    <div class="w-12 h-12 rounded-xl bg-pink-950 border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-dna"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white font-cyber">Cellular Automata Lab</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Watch pixels grow organically using cellular life rules, or execute quantum seed mutations for organic sprite variations.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <main id="studioView" class="hidden flex-1 max-w-7xl w-full mx-auto p-2 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+        
+        <!-- LEFT PANEL: Precision Tools, Symmetry, Color Palette Engine -->
+        <section class="lg:col-span-3 flex flex-col gap-3 order-2 lg:order-1">
+            
+            <!-- Tool Matrix Panel -->
+            <div class="bg-cyber-panel rounded-xl p-3 border border-cyber-border shadow-md space-y-3 hud-corner-box">
+                <div class="flex items-center justify-between text-xs font-mono text-cyan-400 border-b border-cyber-border pb-2">
+                    <span><i class="fa-solid fa-toolbox mr-1.5"></i>TOOL MATRIX</span>
+                    <span id="canvasResBadge" class="bg-cyber-black px-2 py-0.5 rounded text-slate-300 border border-cyber-border text-[10px]">32x32</span>
+                </div>
+
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button id="toolPencil" onclick="setTool('pencil')" class="tool-btn active p-2 bg-purple-600 text-white rounded-lg flex flex-col items-center justify-center hover:bg-purple-500 transition text-[10px]" title="Pencil Brush">
+                        <i class="fa-solid fa-pencil text-xs mb-1"></i>Pencil
+                    </button>
+                    <button id="toolLine" onclick="setTool('line')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Straight Line">
+                        <i class="fa-solid fa-slash text-xs mb-1"></i>Line
+                    </button>
+                    <button id="toolRect" onclick="setTool('rect')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Rectangle Shape">
+                        <i class="fa-regular fa-square text-xs mb-1"></i>Rect
+                    </button>
+                    <button id="toolCircle" onclick="setTool('circle')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Circle Shape">
+                        <i class="fa-regular fa-circle text-xs mb-1"></i>Circle
+                    </button>
+                    <button id="toolBucket" onclick="setTool('bucket')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Flood Fill Bucket">
+                        <i class="fa-solid fa-fill-drip text-xs mb-1"></i>Fill
+                    </button>
+                    <button id="toolDither" onclick="setTool('dither')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Cyber Dither Patterns">
+                        <i class="fa-solid fa-border-none text-xs mb-1"></i>Dither
+                    </button>
+                    <button id="toolShade" onclick="setTool('shade')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Auto-Shade (Lighten/Darken)">
+                        <i class="fa-solid fa-sun text-xs mb-1"></i>Shade
+                    </button>
+                    <button id="toolEraser" onclick="setTool('eraser')" class="tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]" title="Pixel Eraser">
+                        <i class="fa-solid fa-eraser text-xs mb-1"></i>Eraser
+                    </button>
+                </div>
+
+                <!-- Multi-Axis Symmetry Matrix -->
+                <div class="pt-2 border-t border-cyber-border flex items-center justify-between text-xs text-slate-300">
+                    <span class="font-mono text-[10px] text-slate-400">Symmetry:</span>
+                    <div class="flex space-x-1">
+                        <button id="symNoneBtn" onclick="setSymmetry('none')" class="px-2 py-1 bg-purple-600 text-white rounded text-[9px] font-mono">OFF</button>
+                        <button id="symYBtn" onclick="setSymmetry('y')" class="px-2 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[9px] font-mono">VERT</button>
+                        <button id="symXBtn" onclick="setSymmetry('x')" class="px-2 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[9px] font-mono">HORIZ</button>
+                        <button id="symQuadBtn" onclick="setSymmetry('quad')" class="px-2 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[9px] font-mono">QUAD</button>
+                        <button id="symRadialBtn" onclick="setSymmetry('radial')" class="px-2 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[9px] font-mono">RADIAL</button>
+                    </div>
+                </div>
+
+                <!-- History Actions -->
+                <div class="flex gap-2 pt-1">
+                    <button onclick="undo()" class="flex-1 py-1 bg-cyber-card hover:bg-cyber-border border border-cyber-border text-xs rounded-lg flex items-center justify-center space-x-1 transition text-slate-300 font-mono">
+                        <i class="fa-solid fa-rotate-left text-cyan-400 text-[10px]"></i><span>Undo</span>
+                    </button>
+                    <button onclick="redo()" class="flex-1 py-1 bg-cyber-card hover:bg-cyber-border border border-cyber-border text-xs rounded-lg flex items-center justify-center space-x-1 transition text-slate-300 font-mono">
+                        <i class="fa-solid fa-rotate-right text-cyan-400 text-[10px]"></i><span>Redo</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Color Palette Engine -->
+            <div class="bg-cyber-panel rounded-xl p-3 border border-cyber-border shadow-md space-y-3 flex-1 hud-corner-box">
+                <div class="flex items-center justify-between text-xs font-mono text-pink-400 border-b border-cyber-border pb-2">
+                    <span><i class="fa-solid fa-palette mr-1.5"></i>COLOR MATRIX</span>
+                    <span id="activeHexDisplay" class="text-[11px] font-mono text-slate-300">#8B5CF6</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="color" id="studioColorInput" value="#8b5cf6" onchange="updateStudioColor(this.value)" class="w-9 h-9 rounded cursor-pointer bg-transparent border-0">
+                    <input type="text" id="studioHexText" value="#8B5CF6" onchange="updateStudioColor(this.value)" class="flex-1 bg-cyber-black border border-cyber-border rounded px-2 py-1 text-xs font-mono text-white focus:outline-none focus:border-cyan-400 uppercase">
+                    
+                    <button onclick="generateAIPalette()" class="px-2 py-1 bg-pink-950 border border-pink-500/50 hover:bg-pink-900 text-pink-300 text-[10px] font-mono rounded" title="Generate AI Color Harmony">
+                        <i class="fa-solid fa-sparkles"></i> AI
+                    </button>
+                </div>
+
+                <!-- Palette Selectors -->
+                <div>
+                    <select id="paletteSelect" onchange="loadPalette(this.value)" class="w-full bg-cyber-black border border-cyber-border rounded-lg px-2 py-1.5 text-xs text-slate-200 font-mono">
+                        <option value="cyber">NEON CYBERPUNK</option>
+                        <option value="synthwave">SYNTHWAVE RADICAL</option>
+                        <option value="matrix">MATRIX GHOST</option>
+                        <option value="arcade">16-BIT ARCADE</option>
+                        <option value="void">OBSIDIAN VOID</option>
+                    </select>
+                </div>
+
+                <!-- Swatches Grid -->
+                <div id="studioSwatches" class="grid grid-cols-7 gap-1">
+                    <!-- Swatches injected via JS -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- CENTER PANEL: Interactive Canvas Workstation, Telemetry & Timeline -->
+        <section class="lg:col-span-6 flex flex-col items-center justify-between gap-3 order-1 lg:order-2">
+            
+            <!-- Canvas Resolution & Filter Controls Top Bar -->
+            <div class="w-full bg-cyber-panel border border-cyber-border rounded-xl px-3 py-1.5 flex items-center justify-between text-xs font-mono">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-slate-400 text-[10px]">RES:</span>
+                    <button onclick="changeResolution(16)" id="res16Btn" class="px-2 py-0.5 rounded bg-cyber-card hover:bg-cyber-border text-slate-300 border border-cyber-border text-[10px]">16</button>
+                    <button onclick="changeResolution(32)" id="res32Btn" class="px-2 py-0.5 rounded bg-cyan-600 text-white font-bold border border-cyan-400 text-[10px]">32</button>
+                    <button onclick="changeResolution(64)" id="res64Btn" class="px-2 py-0.5 rounded bg-cyber-card hover:bg-cyber-border text-slate-300 border border-cyber-border text-[10px]">64</button>
+                </div>
+
+                <!-- Post-FX Toggles -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleFX('crt')" id="fxCrtBtn" class="px-2 py-0.5 bg-cyan-950 border border-cyan-500 text-cyan-300 rounded text-[10px]" title="Toggle CRT Scanline Shader">CRT</button>
+                    <button onclick="toggleFX('bloom')" id="fxBloomBtn" class="px-2 py-0.5 bg-cyber-card border border-cyber-border text-slate-400 rounded text-[10px]" title="Toggle Neon Bloom">BLOOM</button>
+                    <button onclick="toggleFX('rgb')" id="fxRgbBtn" class="px-2 py-0.5 bg-cyber-card border border-cyber-border text-slate-400 rounded text-[10px]" title="Toggle Chromatic RGB Shift">RGB</button>
+                    <button onclick="toggleGridLines()" id="gridToggleBtn" class="text-cyan-400 hover:underline flex items-center space-x-1 text-[10px]">
+                        <i class="fa-solid fa-border-all"></i><span>GRID</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Interactive Pixel Canvas Workstation -->
+            <div class="relative w-full aspect-square max-w-[420px] bg-cyber-panel rounded-2xl p-2 border-2 border-cyber-border shadow-2xl flex items-center justify-center overflow-hidden hud-corner-box">
+                <div id="canvasFxContainer" class="relative w-full h-full rounded-xl overflow-hidden checkerboard-grid border border-cyber-border flex items-center justify-center crt-shader">
+                    <canvas id="studioCanvas" class="pixel-art w-full h-full cursor-crosshair touch-none"></canvas>
+                </div>
+            </div>
+
+            <!-- Real-time Pixel Telemetry HUD Bar -->
+            <div class="w-full bg-cyber-panel border border-cyber-border rounded-xl p-2 font-mono text-[10px] flex items-center justify-between text-slate-300">
+                <div class="flex items-center space-x-3">
+                    <span>FILL DENSITY: <strong id="telemetryDensity" class="text-cyan-400">0%</strong></span>
+                    <span>COLORS: <strong id="telemetryColors" class="text-purple-400">0</strong></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="stepCellularLife()" class="px-2 py-0.5 bg-purple-950 border border-purple-600 text-purple-300 hover:bg-purple-900 rounded" title="Step Cellular Automata Life">
+                        <i class="fa-solid fa-dna mr-1"></i>STEP LIFE
+                    </button>
+                    <button onclick="mutateCanvas()" class="px-2 py-0.5 bg-pink-950 border border-pink-600 text-pink-300 hover:bg-pink-900 rounded" title="Quantum Mutation">
+                        <i class="fa-solid fa-biohazard mr-1"></i>MUTATE
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4-Frame Animation Timeline -->
+            <div class="w-full bg-cyber-panel border border-cyber-border rounded-xl p-2.5 space-y-2 hud-corner-box">
+                <div class="flex items-center justify-between text-xs font-mono">
+                    <span class="text-cyan-400 flex items-center space-x-1 text-[11px]">
+                        <i class="fa-solid fa-film"></i><span>SPRITE TIMELINE</span>
+                    </span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleOnionSkin()" id="onionBtn" class="px-2 py-0.5 bg-cyber-card border border-cyber-border text-slate-400 rounded text-[9px]">ONION SKIN</button>
+                        <button id="animPlayBtn" onclick="toggleAnimationPlay()" class="px-2.5 py-0.5 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px] flex items-center space-x-1">
+                            <i class="fa-solid fa-play"></i><span>LOOP</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <!-- 4 Frame Thumbnails -->
+                    <div class="flex space-x-1.5 flex-1 overflow-x-auto">
+                        <div onclick="selectAnimFrame(0)" id="frameThumb0" class="frame-thumb active w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyan-400 p-0.5 cursor-pointer relative flex-shrink-0">
+                            <span class="text-[8px] font-mono text-cyan-300 absolute top-0.5 left-1">F1</span>
+                            <canvas id="thumbCanvas0" width="32" height="32" class="w-full h-full pixel-art"></canvas>
+                        </div>
+                        <div onclick="selectAnimFrame(1)" id="frameThumb1" class="frame-thumb w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyber-border p-0.5 cursor-pointer relative flex-shrink-0">
+                            <span class="text-[8px] font-mono text-slate-400 absolute top-0.5 left-1">F2</span>
+                            <canvas id="thumbCanvas1" width="32" height="32" class="w-full h-full pixel-art"></canvas>
+                        </div>
+                        <div onclick="selectAnimFrame(2)" id="frameThumb2" class="frame-thumb w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyber-border p-0.5 cursor-pointer relative flex-shrink-0">
+                            <span class="text-[8px] font-mono text-slate-400 absolute top-0.5 left-1">F3</span>
+                            <canvas id="thumbCanvas2" width="32" height="32" class="w-full h-full pixel-art"></canvas>
+                        </div>
+                        <div onclick="selectAnimFrame(3)" id="frameThumb3" class="frame-thumb w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyber-border p-0.5 cursor-pointer relative flex-shrink-0">
+                            <span class="text-[8px] font-mono text-slate-400 absolute top-0.5 left-1">F4</span>
+                            <canvas id="thumbCanvas3" width="32" height="32" class="w-full h-full pixel-art"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- AI Procedural Trigger Button -->
+                    <button onclick="triggerStudioAIGen()" class="px-3 py-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-cyber text-[10px] rounded-xl shadow-lg active:scale-95 transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-yellow-300 animate-pulse"></i>
+                        <span>AI AUTO-GEN</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT PANEL: Multi-Layer Blend Engine, AI Archetypes, Shader Settings -->
+        <section class="lg:col-span-3 flex flex-col gap-3 order-3">
+            
+            <!-- Tabbed Panel -->
+            <div class="bg-cyber-panel rounded-xl p-3 border border-cyber-border shadow-md flex-1 flex flex-col space-y-3 hud-corner-box">
+                
+                <!-- Tab Headers -->
+                <div class="flex border-b border-cyber-border text-xs font-mono">
+                    <button onclick="switchRightTab('layers')" id="tabLayersBtn" class="flex-1 py-1.5 text-cyan-400 border-b-2 border-cyan-400 font-bold">LAYERS</button>
+                    <button onclick="switchRightTab('ai')" id="tabAiBtn" class="flex-1 py-1.5 text-slate-400 hover:text-white">AI SEED</button>
+                    <button onclick="switchRightTab('gear')" id="tabGearBtn" class="flex-1 py-1.5 text-slate-400 hover:text-white">GEAR</button>
+                </div>
+
+                <!-- Tab 1: Layers Matrix -->
+                <div id="tabContentLayers" class="space-y-2 text-xs font-mono flex-1">
+                    <div class="flex justify-between items-center text-[10px] text-slate-400">
+                        <span>ACTIVE LAYER</span>
+                        <span>BLEND / OPACITY</span>
+                    </div>
+
+                    <div id="layersListContainer" class="space-y-1.5">
+                        <!-- Layer 3: FX -->
+                        <div onclick="setActiveLayer(3)" id="layerRow3" class="layer-item p-2 bg-cyber-card border border-cyber-border rounded-lg flex items-center justify-between cursor-pointer">
+                            <span class="flex items-center space-x-2">
+                                <i class="fa-solid fa-wand-sparkles text-pink-400 text-xs"></i>
+                                <span>4. FX Glow</span>
+                            </span>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-[9px] bg-cyber-black px-1 rounded text-purple-300">Screen</span>
+                                <i class="fa-solid fa-eye text-cyan-400"></i>
+                            </div>
+                        </div>
+
+                        <!-- Layer 2: Cyber Gear -->
+                        <div onclick="setActiveLayer(2)" id="layerRow2" class="layer-item p-2 bg-cyber-card border border-cyber-border rounded-lg flex items-center justify-between cursor-pointer">
+                            <span class="flex items-center space-x-2">
+                                <i class="fa-solid fa-helmet-safety text-yellow-400 text-xs"></i>
+                                <span>3. Gear & Armor</span>
+                            </span>
+                            <i class="fa-solid fa-eye text-cyan-400"></i>
+                        </div>
+
+                        <!-- Layer 1: Body -->
+                        <div onclick="setActiveLayer(1)" id="layerRow1" class="layer-item p-2 bg-purple-900/40 border border-purple-500 rounded-lg flex items-center justify-between cursor-pointer">
+                            <span class="flex items-center space-x-2">
+                                <i class="fa-solid fa-user text-cyan-400 text-xs"></i>
+                                <span>2. Head / Base</span>
+                            </span>
+                            <i class="fa-solid fa-eye text-cyan-400"></i>
+                        </div>
+
+                        <!-- Layer 0: Background -->
+                        <div onclick="setActiveLayer(0)" id="layerRow0" class="layer-item p-2 bg-cyber-card border border-cyber-border rounded-lg flex items-center justify-between cursor-pointer">
+                            <span class="flex items-center space-x-2">
+                                <i class="fa-solid fa-image text-emerald-400 text-xs"></i>
+                                <span>1. Background</span>
+                            </span>
+                            <i class="fa-solid fa-eye text-cyan-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- Layer Opacity Slider -->
+                    <div class="pt-2 border-t border-cyber-border space-y-1">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-slate-400">Layer Opacity:</span>
+                            <span id="layerOpacityVal" class="text-cyan-400">100%</span>
+                        </div>
+                        <input type="range" id="layerOpacitySlider" min="0" max="100" value="100" oninput="updateLayerOpacity(this.value)" class="w-full accent-cyan-400">
+                    </div>
+                </div>
+
+                <!-- Tab 2: AI Archetype Controls -->
+                <div id="tabContentAi" class="hidden space-y-3 text-xs font-mono">
+                    <div>
+                        <label class="text-slate-400 block mb-1 text-[10px]">Matrix Archetype:</label>
+                        <select id="aiArchetypeSelect" class="w-full bg-cyber-black border border-cyber-border rounded p-1.5 text-xs text-slate-200">
+                            <option value="netrunner">NETRUNNER VISOR</option>
+                            <option value="mech">MECH TITAN</option>
+                            <option value="alien">CYBER ALIEN</option>
+                            <option value="samurai">NEON SAMURAI</option>
+                            <option value="ghost">GLITCH GHOST</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-slate-400">Chaos Noise:</span>
+                            <span id="chaosVal" class="text-purple-400">40%</span>
+                        </div>
+                        <input type="range" id="chaosSlider" min="10" max="90" value="40" oninput="document.getElementById('chaosVal').innerText=this.value+'%'" class="w-full accent-purple-500">
+                    </div>
+
+                    <button onclick="triggerStudioAIGen()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-cyber text-[10px]">
+                        GENERATE ARCHETYPE
+                    </button>
+                </div>
+
+                <!-- Tab 3: Preset Cyber Gear Catalog -->
+                <div id="tabContentGear" class="hidden space-y-2">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button onclick="applyPresetStyle('cyber-warrior')" class="p-2 bg-cyber-card hover:bg-purple-900/40 border border-cyber-border rounded text-left">
+                            <p class="font-bold text-white text-[11px]"><i class="fa-solid fa-robot text-cyan-400 mr-1"></i>Netrunner</p>
+                            <p class="text-[9px] text-slate-400">Visor & Mask</p>
+                        </button>
+                        <button onclick="applyPresetStyle('mecha-pilot')" class="p-2 bg-cyber-card hover:bg-purple-900/40 border border-cyber-border rounded text-left">
+                            <p class="font-bold text-white text-[11px]"><i class="fa-solid fa-helmet-safety text-pink-400 mr-1"></i>Mecha</p>
+                            <p class="text-[9px] text-slate-400">Heavy Visor</p>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Export Actions Box -->
+            <div class="bg-gradient-to-br from-cyber-panel via-cyber-card to-cyber-panel p-3 rounded-xl border border-cyan-500/30 space-y-2 shadow-xl hud-corner-box">
+                <button onclick="switchView('card')" class="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-lg shadow-lg transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-id-badge"></i>
+                    <span>CREATE PROFILE ID CARD</span>
+                </button>
+
+                <button onclick="exportAvatarHD()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs rounded-lg shadow-lg transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>EXPORT HIGH-RES PNG</span>
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <main id="holoView" class="hidden flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <div class="flex justify-between items-end border-b border-cyber-border pb-4">
+            <div>
+                <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">[ VOLUMETRIC THREE.JS ENGINE ]</span>
+                <h2 class="text-2xl font-black text-white font-cyber">3D VOXEL HOLOGRAM MATRIX</h2>
+            </div>
+            <span class="text-xs font-mono text-slate-400"><i class="fa-solid fa-arrows-spin text-cyan-400 animate-spin mr-1"></i>DRAG TO ROTATE 3D VOXELS</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <!-- 3D Three.js Container Canvas -->
+            <div class="lg:col-span-8 bg-cyber-panel rounded-2xl border-2 border-cyan-500/40 p-2 shadow-2xl relative h-[480px] overflow-hidden crt-shader hud-corner-box">
+                <div id="threeJsContainer" class="w-full h-full rounded-xl bg-cyber-black"></div>
+                <div class="absolute bottom-4 left-4 font-mono text-[10px] text-cyan-400 bg-cyber-dark/90 px-3 py-1 rounded border border-cyan-500/30">
+                    REAL-TIME CUBIC VOXEL EXTRUSION MODE
+                </div>
+            </div>
+
+            <!-- Holo Controls Sidebar -->
+            <div class="lg:col-span-4 bg-cyber-panel border border-cyber-border rounded-2xl p-6 space-y-4 font-mono text-xs hud-corner-box">
+                <h3 class="text-sm font-bold text-white font-cyber text-cyan-300">VOXEL PARAMETERS</h3>
+
+                <div class="space-y-2">
+                    <label class="text-slate-400 block">Rotation Velocity:</label>
+                    <input type="range" id="holoSpeedSlider" min="0" max="50" value="15" oninput="updateHoloSpeed(this.value)" class="w-full accent-cyan-400">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-slate-400 block">Voxel Depth Extrusion:</label>
+                    <input type="range" id="voxelDepthSlider" min="1" max="10" value="3" oninput="updateVoxelExtrusion(this.value)" class="w-full accent-purple-400">
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <span class="text-slate-400">Wireframe Mesh:</span>
+                    <button onclick="toggleWireframeVoxel()" id="wireframeBtn" class="px-3 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[10px]">OFF</button>
+                </div>
+
+                <button onclick="triggerVoxelExplosion()" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold rounded-xl transition shadow-lg flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-burst"></i>
+                    <span>QUANTUM VOXEL DISASSEMBLY</span>
+                </button>
+
+                <button onclick="switchView('studio')" class="w-full py-3 bg-cyber-card hover:bg-cyber-border border border-cyber-border text-cyan-300 font-bold rounded-xl transition">
+                    &larr; BACK TO STUDIO EDITOR
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <main id="cardView" class="hidden flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+        <div class="text-center space-y-2">
+            <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">[ CYBER PROFILE LAB ]</span>
+            <h2 class="text-3xl font-extrabold text-white font-cyber">HOLOGRAPHIC GAMER ID CARD</h2>
+        </div>
+
+        <div class="max-w-2xl mx-auto space-y-6">
+            <!-- Dynamic Glare Interactive Card Container -->
+            <div id="holoCardPreview" onmousemove="handleCardTilt(event)" onmouseleave="resetCardTilt()" class="relative w-full aspect-[16/9] bg-gradient-to-r from-purple-950 via-cyber-dark to-cyan-950 rounded-2xl p-6 border-2 border-cyan-500/50 shadow-2xl overflow-hidden flex items-center justify-between group transition-transform duration-200 hud-corner-box">
+                
+                <div class="holo-card-reflection absolute inset-0 pointer-events-none opacity-40"></div>
+
+                <div class="z-10 flex items-center space-x-6">
+                    <div class="w-32 h-32 rounded-2xl bg-cyber-black p-1 border-2 border-cyan-400 shadow-xl flex-shrink-0">
+                        <img id="cardAvatarPreview" src="" class="w-full h-full object-cover pixel-art rounded-xl" alt="Avatar">
+                    </div>
+                    <div class="space-y-1">
+                        <div class="px-2 py-0.5 rounded bg-cyan-950 border border-cyan-400 text-cyan-300 font-mono text-[10px] inline-block">
+                            RANK: <span id="cardRankText">NETRUNNER PRIME</span>
+                        </div>
+                        <h3 id="cardTagText" class="text-2xl font-black text-white font-cyber tracking-wider">GHOST_USER</h3>
+                        <p class="text-xs text-purple-400 font-mono">SPEC: QUANTUM CODEX</p>
+                        <div class="pt-2 flex items-center space-x-4 font-mono text-[10px] text-slate-300">
+                            <span>PWR: <strong class="text-cyan-400">9999</strong></span>
+                            <span>SYS: <strong class="text-green-400">ONLINE</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="z-10 flex flex-col items-end justify-between h-full font-mono text-xs text-slate-400">
+                    <canvas id="qrCanvas" width="56" height="56" class="rounded bg-white p-1 pixel-art shadow-lg"></canvas>
+                    <div class="text-right">
+                        <p class="text-[9px]">ID NO:</p>
+                        <p class="font-bold text-white">#PX-9082-V4</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customization Controls -->
+            <div class="bg-cyber-panel border border-cyber-border rounded-2xl p-6 space-y-4 font-mono text-xs hud-corner-box">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-slate-400 block mb-1">Gamer Tag Name</label>
+                        <input type="text" id="inputCardTag" value="GHOST_USER" oninput="updateCardDetails()" class="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">Rank Title</label>
+                        <input type="text" id="inputCardRank" value="NETRUNNER PRIME" oninput="updateCardDetails()" class="w-full bg-cyber-black border border-cyber-border rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                </div>
+
+                <button onclick="downloadCardPNG()" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:from-cyan-400 hover:to-pink-400 text-white font-cyber font-bold text-xs rounded-xl shadow-xl transition">
+                    <i class="fa-solid fa-download mr-1"></i> DOWNLOAD 4K ID CARD PNG
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <main id="galleryView" class="hidden flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+        <div class="space-y-2 text-center">
+            <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">[ QUANTUM DATA HUB ]</span>
+            <h2 class="text-3xl font-extrabold text-white font-cyber">COMMUNITY ARCHIVE & TEMPLATES</h2>
+        </div>
+
+        <div id="fullGalleryGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Dynamic archive items injected via JS -->
+        </div>
+    </main>
+
+    <script>
+        // Web Audio Synthesizer Engine
+        const AudioFX = {
+            ctx: null,
+            enabled: true,
+            waveType: 'sine',
+            bgOsc: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playTheremin(x, y, max) {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = this.waveType;
+                
+                // Map y-coordinate to frequency (higher pitch on top)
+                const freq = 200 + (1 - y / max) * 600;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.05);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            },
+            playClick() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.04);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            },
+            playGen() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            }
+        };
+
+        function changeSynthWave(val) {
+            AudioFX.waveType = val;
+            AudioFX.playClick();
+        }
+
+        function toggleAudioSFX() {
+            AudioFX.enabled = !AudioFX.enabled;
+            const icon = document.getElementById('sfxIcon');
+            icon.className = AudioFX.enabled ? 'fa-solid fa-volume-high text-cyan-400' : 'fa-solid fa-volume-xmark text-slate-500';
+        }
+
+        function toggleAmbientHum() {
+            AudioFX.init();
+            const icon = document.getElementById('bgDroneIcon');
+            if (AudioFX.bgOsc) {
+                AudioFX.bgOsc.stop();
+                AudioFX.bgOsc = null;
+                icon.className = 'fa-solid fa-radio text-slate-500';
+            } else {
+                AudioFX.bgOsc = AudioFX.ctx.createOscillator();
+                const gain = AudioFX.ctx.createGain();
+                AudioFX.bgOsc.type = 'sine';
+                AudioFX.bgOsc.frequency.setValueAtTime(55, AudioFX.ctx.currentTime);
+                gain.gain.setValueAtTime(0.025, AudioFX.ctx.currentTime);
+                AudioFX.bgOsc.connect(gain);
+                gain.connect(AudioFX.ctx.destination);
+                AudioFX.bgOsc.start();
+                icon.className = 'fa-solid fa-radio text-cyan-400 animate-pulse';
+            }
+        }
+
+        function toggleTerminalModal() {
+            AudioFX.playClick();
+            document.getElementById('cliTerminalModal').classList.toggle('hidden');
+        }
+
+        function handleCliCommand(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                e.target.value = '';
+                const log = document.getElementById('cliOutputLog');
+
+                const p = document.createElement('p');
+                p.className = 'text-white font-bold';
+                p.innerText = `> ${input}`;
+                log.appendChild(p);
+
+                if (input === '/help') {
+                    log.innerHTML += `
+                        <p class="text-cyan-300">AVAILABLE COMMANDS:</p>
+                        <p class="text-slate-400">/gen [archetype=mech|netrunner|alien] - Generate AI sprite</p>
+                        <p class="text-slate-400">/mutate - Apply quantum cellular noise</p>
+                        <p class="text-slate-400">/clear - Clear active canvas layer</p>
+                        <p class="text-slate-400">/stats - Display active canvas telemetry</p>
+                    `;
+                } else if (input.startsWith('/gen')) {
+                    triggerStudioAIGen();
+                    log.innerHTML += `<p class="text-green-400">> AI Archetype synthesized successfully.</p>`;
+                } else if (input === '/mutate') {
+                    mutateCanvas();
+                    log.innerHTML += `<p class="text-purple-400">> Canvas mutated with quantum seed noise.</p>`;
+                } else if (input === '/clear') {
+                    layerData[currentFrameIdx][activeLayer].fill('#00000000');
+                    renderStudio();
+                    log.innerHTML += `<p class="text-pink-400">> Layer ${activeLayer} cleared.</p>`;
+                } else if (input === '/stats') {
+                    log.innerHTML += `<p class="text-cyan-400">> Res: ${resSize}x${resSize} | Layer: ${activeLayer} | Frame: ${currentFrameIdx}</p>`;
+                } else {
+                    log.innerHTML += `<p class="text-red-400">> Command not recognized. Type /help.</p>`;
+                }
+                log.scrollTop = log.scrollHeight;
+            }
+        }
+
+        function switchView(viewName) {
+            AudioFX.playClick();
+            document.querySelectorAll('main').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.className = 'nav-btn px-3 py-1.5 rounded-lg text-slate-400 hover:text-white flex items-center space-x-2 transition';
+            });
+
+            document.getElementById(`${viewName}View`).classList.remove('hidden');
+            const navBtn = document.getElementById(`nav${viewName.charAt(0).toUpperCase() + viewName.slice(1)}Btn`);
+            if (navBtn) navBtn.className = 'nav-btn px-3 py-1.5 rounded-lg text-cyan-400 bg-cyber-card border border-cyan-500/30 flex items-center space-x-2 transition';
+
+            if (viewName === 'studio') renderStudio();
+            if (viewName === 'holo') initThreeJSVoxelHologram();
+            if (viewName === 'card') updateCardDetails();
+            if (viewName === 'gallery') renderFullGallery();
+        }
+
+        // State Machine Variables
+        let resSize = 32;
+        let activeTool = 'pencil';
+        let activeColor = '#8b5cf6';
+        let activeLayer = 1;
+        let symmetry = 'none';
+        let showGrid = true;
+        let isDrawing = false;
+        let currentFrameIdx = 0;
+        let isAnimLooping = false;
+        let animInterval = null;
+        let onionSkinEnabled = false;
+
+        let fxState = { crt: true, bloom: false, rgb: false };
+
+        let layerData = Array(4).fill(null).map(() => 
+            Array(4).fill(null).map(() => Array(resSize * resSize).fill('#00000000'))
+        );
+
+        let historyStack = [];
+        let historyIdx = -1;
+
+        const studioCanvas = document.getElementById('studioCanvas');
+        const studioCtx = studioCanvas.getContext('2d');
+
+        function changeResolution(newRes) {
+            resSize = newRes;
+            document.getElementById('canvasResBadge').innerText = `${resSize}x${resSize}`;
+            layerData = Array(4).fill(null).map(() => 
+                Array(4).fill(null).map(() => Array(resSize * resSize).fill('#00000000'))
+            );
+            saveHistory();
+            renderStudio();
+        }
+
+        function saveHistory() {
+            if (historyIdx < historyStack.length - 1) {
+                historyStack = historyStack.slice(0, historyIdx + 1);
+            }
+            historyStack.push(JSON.parse(JSON.stringify(layerData)));
+            if (historyStack.length > 25) historyStack.shift();
+            else historyIdx++;
+        }
+
+        function undo() {
+            if (historyIdx > 0) {
+                historyIdx--;
+                layerData = JSON.parse(JSON.stringify(historyStack[historyIdx]));
+                renderStudio();
+            }
+        }
+
+        function redo() {
+            if (historyIdx < historyStack.length - 1) {
+                historyIdx++;
+                layerData = JSON.parse(JSON.stringify(historyStack[historyIdx]));
+                renderStudio();
+            }
+        }
+
+        function renderStudio() {
+            studioCanvas.width = resSize;
+            studioCanvas.height = resSize;
+            studioCtx.clearRect(0, 0, resSize, resSize);
+
+            if (onionSkinEnabled && currentFrameIdx > 0) {
+                studioCtx.globalAlpha = 0.3;
+                for (let l = 0; l < 4; l++) {
+                    const prevLayer = layerData[currentFrameIdx - 1][l];
+                    for (let y = 0; y < resSize; y++) {
+                        for (let x = 0; x < resSize; x++) {
+                            const col = prevLayer[y * resSize + x];
+                            if (col && col !== '#00000000') {
+                                studioCtx.fillStyle = col;
+                                studioCtx.fillRect(x, y, 1, 1);
+                            }
+                        }
+                    }
+                }
+                studioCtx.globalAlpha = 1.0;
+            }
+
+            let filledPixels = 0;
+            const uniqueColors = new Set();
+
+            for (let l = 0; l < 4; l++) {
+                const layer = layerData[currentFrameIdx][l];
+                for (let y = 0; y < resSize; y++) {
+                    for (let x = 0; x < resSize; x++) {
+                        const col = layer[y * resSize + x];
+                        if (col && col !== '#00000000') {
+                            studioCtx.fillStyle = col;
+                            studioCtx.fillRect(x, y, 1, 1);
+                            filledPixels++;
+                            uniqueColors.add(col);
+                        }
+                    }
+                }
+            }
+
+            if (showGrid) {
+                studioCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                studioCtx.lineWidth = 0.05;
+                for (let i = 0; i <= resSize; i++) {
+                    studioCtx.beginPath(); studioCtx.moveTo(i, 0); studioCtx.lineTo(i, resSize); studioCtx.stroke();
+                    studioCtx.beginPath(); studioCtx.moveTo(0, i); studioCtx.lineTo(resSize, i); studioCtx.stroke();
+                }
+            }
+
+            // Update Telemetry Bar
+            const total = resSize * resSize;
+            document.getElementById('telemetryDensity').innerText = `${Math.round((filledPixels / total) * 100)}%`;
+            document.getElementById('telemetryColors').innerText = uniqueColors.size;
+
+            updateAnimThumbnails();
+            if (threeVoxelGroup) updateVoxelMeshFromCanvas();
+        }
+
+        function getCanvasCoords(e) {
+            const rect = studioCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const scaleX = studioCanvas.width / rect.width;
+            const scaleY = studioCanvas.height / rect.height;
+
+            const x = Math.floor((clientX - rect.left) * scaleX);
+            const y = Math.floor((clientY - rect.top) * scaleY);
+
+            return {
+                x: Math.max(0, Math.min(resSize - 1, x)),
+                y: Math.max(0, Math.min(resSize - 1, y))
+            };
+        }
+
+        function drawPixel(x, y) {
+            AudioFX.playTheremin(x, y, resSize);
+
+            const targets = [{x, y}];
+            if (symmetry === 'y' || symmetry === 'quad' || symmetry === 'radial') {
+                targets.push({x: resSize - 1 - x, y});
+            }
+            if (symmetry === 'x' || symmetry === 'quad' || symmetry === 'radial') {
+                targets.push({x, y: resSize - 1 - y});
+            }
+            if (symmetry === 'quad' || symmetry === 'radial') {
+                targets.push({x: resSize - 1 - x, y: resSize - 1 - y});
+            }
+
+            const currentLayer = layerData[currentFrameIdx][activeLayer];
+
+            targets.forEach(pt => {
+                const idx = pt.y * resSize + pt.x;
+                if (activeTool === 'pencil') {
+                    currentLayer[idx] = activeColor;
+                } else if (activeTool === 'eraser') {
+                    currentLayer[idx] = '#00000000';
+                } else if (activeTool === 'dither') {
+                    if ((pt.x + pt.y) % 2 === 0) currentLayer[idx] = activeColor;
+                }
+            });
+
+            renderStudio();
+        }
+
+        function setTool(tool) {
+            AudioFX.playClick();
+            activeTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.className = 'tool-btn p-2 bg-cyber-card text-slate-300 hover:text-white rounded-lg flex flex-col items-center justify-center hover:bg-cyber-border transition text-[10px]';
+            });
+            const activeBtn = document.getElementById(`tool${tool.charAt(0).toUpperCase() + tool.slice(1)}`);
+            if (activeBtn) activeBtn.className = 'tool-btn active p-2 bg-purple-600 text-white rounded-lg flex flex-col items-center justify-center hover:bg-purple-500 transition text-[10px]';
+        }
+
+        function setSymmetry(symMode) {
+            AudioFX.playClick();
+            symmetry = symMode;
+            document.querySelectorAll('#symNoneBtn, #symYBtn, #symXBtn, #symQuadBtn, #symRadialBtn').forEach(b => {
+                b.className = 'px-2 py-1 bg-cyber-card border border-cyber-border text-slate-300 rounded text-[9px] font-mono';
+            });
+            const btn = document.getElementById(`sym${symMode.charAt(0).toUpperCase() + symMode.slice(1)}Btn`);
+            if (btn) btn.className = 'px-2 py-1 bg-purple-600 text-white rounded text-[9px] font-mono';
+        }
+
+        function toggleFX(fxKey) {
+            fxState[fxKey] = !fxState[fxKey];
+            const container = document.getElementById('canvasFxContainer');
+            const btn = document.getElementById(`fx${fxKey.charAt(0).toUpperCase() + fxKey.slice(1)}Btn`);
+
+            if (fxKey === 'crt') container.classList.toggle('crt-shader', fxState.crt);
+            else if (fxKey === 'bloom') container.classList.toggle('bloom-active', fxState.bloom);
+            else if (fxKey === 'rgb') container.classList.toggle('rgb-shift-active', fxState.rgb);
+
+            btn.className = fxState[fxKey] 
+                ? 'px-2 py-0.5 bg-cyan-950 border border-cyan-500 text-cyan-300 rounded text-[10px]' 
+                : 'px-2 py-0.5 bg-cyber-card border border-cyber-border text-slate-400 rounded text-[10px]';
+        }
+
+        function setActiveLayer(layerIdx) {
+            AudioFX.playClick();
+            activeLayer = layerIdx;
+            document.querySelectorAll('.layer-item').forEach((row, i) => {
+                row.className = i === layerIdx 
+                    ? 'layer-item p-2 bg-purple-900/40 border border-purple-500 rounded-lg flex items-center justify-between cursor-pointer'
+                    : 'layer-item p-2 bg-cyber-card border border-cyber-border rounded-lg flex items-center justify-between cursor-pointer';
+            });
+        }
+
+        function switchRightTab(tabName) {
+            AudioFX.playClick();
+            document.getElementById('tabContentLayers').classList.add('hidden');
+            document.getElementById('tabContentAi').classList.add('hidden');
+            document.getElementById('tabContentGear').classList.add('hidden');
+
+            document.getElementById(`tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
+        }
+
+        function updateStudioColor(hex) {
+            activeColor = hex;
+            document.getElementById('studioColorInput').value = hex;
+            document.getElementById('studioHexText').value = hex.toUpperCase();
+            document.getElementById('activeHexDisplay').innerText = hex.toUpperCase();
+        }
+
+        function generateAIPalette() {
+            AudioFX.playGen();
+            const randomHue = Math.floor(Math.random() * 360);
+            const palette = [
+                `hsl(${randomHue}, 90%, 50%)`,
+                `hsl(${(randomHue + 40) % 360}, 85%, 55%)`,
+                `hsl(${(randomHue + 180) % 360}, 90%, 60%)`,
+                `hsl(${(randomHue + 220) % 360}, 80%, 45%)`,
+                `#ffffff`
+            ];
+            const container = document.getElementById('studioSwatches');
+            container.innerHTML = '';
+            palette.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full aspect-square rounded border border-white/20 hover:scale-110 transition';
+                btn.style.backgroundColor = c;
+                btn.onclick = () => updateStudioColor(c);
+                container.appendChild(btn);
+            });
+        }
+
+        function loadPalette(paletteKey) {
+            const palettes = {
+                cyber: ['#8b5cf6', '#06b6d4', '#f43f5e', '#10b981', '#f59e0b', '#3b82f6', '#ffffff'],
+                synthwave: ['#ff007f', '#ff8800', '#ffff00', '#00ffff', '#200052', '#7b2cbf', '#ffffff'],
+                matrix: ['#00ff66', '#00cc44', '#009933', '#006622', '#003311', '#001100', '#ffffff'],
+                arcade: ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#ffffff'],
+                void: ['#0f172a', '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#ffffff']
+            };
+            const container = document.getElementById('studioSwatches');
+            container.innerHTML = '';
+            (palettes[paletteKey] || palettes.cyber).forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full aspect-square rounded border border-white/20 hover:scale-110 transition';
+                btn.style.backgroundColor = c;
+                btn.onclick = () => updateStudioColor(c);
+                container.appendChild(btn);
+            });
+        }
+
+        function stepCellularLife() {
+            AudioFX.playGen();
+            const bodyLayer = layerData[currentFrameIdx][activeLayer];
+            const nextLayer = [...bodyLayer];
+            
+            for (let y = 1; y < resSize - 1; y++) {
+                for (let x = 1; x < resSize - 1; x++) {
+                    const idx = y * resSize + x;
+                    let activeNeighbors = 0;
+                    
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const nIdx = (y + dy) * resSize + (x + dx);
+                            if (bodyLayer[nIdx] && bodyLayer[nIdx] !== '#00000000') activeNeighbors++;
+                        }
+                    }
+
+                    if (bodyLayer[idx] !== '#00000000' && (activeNeighbors < 2 || activeNeighbors > 3)) {
+                        nextLayer[idx] = '#00000000';
+                    } else if (bodyLayer[idx] === '#00000000' && activeNeighbors === 3) {
+                        nextLayer[idx] = activeColor;
+                    }
+                }
+            }
+
+            layerData[currentFrameIdx][activeLayer] = nextLayer;
+            saveHistory();
+            renderStudio();
+        }
+
+        function mutateCanvas() {
+            AudioFX.playGen();
+            const layer = layerData[currentFrameIdx][activeLayer];
+            for (let i = 0; i < layer.length; i++) {
+                if (Math.random() < 0.05) {
+                    layer[i] = Math.random() > 0.5 ? activeColor : '#00000000';
+                }
+            }
+            saveHistory();
+            renderStudio();
+        }
+
+        function triggerStudioAIGen() {
+            AudioFX.playGen();
+            const colors = ['#00f0ff', '#ff0055', '#a855f7', '#00ff66', '#ffcc00'];
+            const mainCol = colors[Math.floor(Math.random() * colors.length)];
+            const eyeCol = '#ffffff';
+
+            const center = Math.floor(resSize / 2);
+            const bodyLayer = layerData[currentFrameIdx][1];
+            const gearLayer = layerData[currentFrameIdx][2];
+
+            bodyLayer.fill('#00000000');
+            gearLayer.fill('#00000000');
+
+            for (let y = 6; y < resSize - 8; y++) {
+                for (let x = center - 6; x <= center; x++) {
+                    if (Math.random() > 0.2) {
+                        const idx = y * resSize + x;
+                        const symIdx = y * resSize + (resSize - 1 - x);
+                        bodyLayer[idx] = mainCol;
+                        bodyLayer[symIdx] = mainCol;
+                    }
+                }
+            }
+
+            const eyeY = Math.floor(resSize * 0.4);
+            for (let x = center - 4; x <= center + 4; x++) {
+                gearLayer[eyeY * resSize + x] = eyeCol;
+            }
+
+            saveHistory();
+            renderStudio();
+        }
+
+        function triggerHeroAIGen() {
+            const canvas = document.getElementById('heroCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 32, 32);
+
+            const colors = ['#00f0ff', '#ff0055', '#a855f7', '#00ff66'];
+            const skinCol = colors[Math.floor(Math.random() * colors.length)];
+
+            for (let y = 6; y < 26; y++) {
+                for (let x = 8; x <= 16; x++) {
+                    if (Math.random() > 0.3) {
+                        ctx.fillStyle = skinCol;
+                        ctx.fillRect(x, y, 1, 1);
+                        ctx.fillRect(31 - x, y, 1, 1);
+                    }
+                }
+            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(10, 14, 12, 3);
+        }
+
+        function selectAnimFrame(idx) {
+            currentFrameIdx = idx;
+            document.querySelectorAll('.frame-thumb').forEach((thumb, i) => {
+                thumb.className = i === idx 
+                    ? 'frame-thumb active w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyan-400 p-0.5 cursor-pointer relative flex-shrink-0'
+                    : 'frame-thumb w-12 h-12 rounded-lg bg-cyber-card border-2 border-cyber-border p-0.5 cursor-pointer relative flex-shrink-0';
+            });
+            renderStudio();
+        }
+
+        function toggleAnimationPlay() {
+            isAnimLooping = !isAnimLooping;
+            const btn = document.getElementById('animPlayBtn');
+            if (isAnimLooping) {
+                btn.className = 'px-2.5 py-0.5 bg-red-600 hover:bg-red-500 text-white rounded font-bold text-[10px] flex items-center space-x-1';
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i><span>STOP</span>';
+                animInterval = setInterval(() => {
+                    currentFrameIdx = (currentFrameIdx + 1) % 4;
+                    renderStudio();
+                }, 300);
+            } else {
+                btn.className = 'px-2.5 py-0.5 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px] flex items-center space-x-1';
+                btn.innerHTML = '<i class="fa-solid fa-play"></i><span>LOOP</span>';
+                clearInterval(animInterval);
+            }
+        }
+
+        function toggleOnionSkin() {
+            onionSkinEnabled = !onionSkinEnabled;
+            const btn = document.getElementById('onionBtn');
+            btn.className = onionSkinEnabled 
+                ? 'px-2 py-0.5 bg-purple-600 border border-purple-400 text-white rounded text-[9px]'
+                : 'px-2 py-0.5 bg-cyber-card border border-cyber-border text-slate-400 rounded text-[9px]';
+            renderStudio();
+        }
+
+        function updateAnimThumbnails() {
+            [0, 1, 2, 3].forEach(fIdx => {
+                const c = document.getElementById(`thumbCanvas${fIdx}`);
+                const cx = c.getContext('2d');
+                cx.clearRect(0, 0, 32, 32);
+                c.width = resSize; c.height = resSize;
+                for (let l = 0; l < 4; l++) {
+                    const fLayer = layerData[fIdx][l];
+                    for (let y = 0; y < resSize; y++) {
+                        for (let x = 0; x < resSize; x++) {
+                            const col = fLayer[y * resSize + x];
+                            if (col && col !== '#00000000') {
+                                cx.fillStyle = col; cx.fillRect(x, y, 1, 1);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportAvatarHD() {
+            const expCanvas = document.createElement('canvas');
+            const scale = 16;
+            expCanvas.width = resSize * scale;
+            expCanvas.height = resSize * scale;
+            const ctx = expCanvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+
+            for (let l = 0; l < 4; l++) {
+                const layer = layerData[currentFrameIdx][l];
+                for (let y = 0; y < resSize; y++) {
+                    for (let x = 0; x < resSize; x++) {
+                        const col = layer[y * resSize + x];
+                        if (col && col !== '#00000000') {
+                            ctx.fillStyle = col;
+                            ctx.fillRect(x * scale, y * scale, scale, scale);
+                        }
+                    }
+                }
+            }
+
+            const link = document.createElement('a');
+            link.download = `cyber-avatar-v4-${Date.now()}.png`;
+            link.href = expCanvas.toDataURL();
+            link.click();
+        }
+
+        // Three.js Volumetric Voxel Engine
+        let threeScene, threeCamera, threeRenderer, threeVoxelGroup;
+        let voxelRotSpeed = 0.015;
+        let voxelDepthExtrusion = 3;
+        let voxelWireframe = false;
+
+        function initThreeJSVoxelHologram() {
+            const container = document.getElementById('threeJsContainer');
+            if (threeRenderer) return;
+
+            threeScene = new THREE.Scene();
+            threeCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            threeCamera.position.set(0, 0, 45);
+
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(threeRenderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            threeScene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0x00f0ff, 1);
+            dirLight.position.set(20, 20, 20);
+            threeScene.add(dirLight);
+
+            threeVoxelGroup = new THREE.Group();
+            threeScene.add(threeVoxelGroup);
+
+            updateVoxelMeshFromCanvas();
+
+            function animateThree() {
+                requestAnimationFrame(animateThree);
+                if (threeVoxelGroup) {
+                    threeVoxelGroup.rotation.y += voxelRotSpeed;
+                }
+                threeRenderer.render(threeScene, threeCamera);
+            }
+            animateThree();
+        }
+
+        function updateVoxelMeshFromCanvas() {
+            if (!threeVoxelGroup) return;
+
+            while (threeVoxelGroup.children.length > 0) {
+                threeVoxelGroup.remove(threeVoxelGroup.children[0]);
+            }
+
+            const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+            const offset = resSize / 2;
+
+            for (let l = 0; l < 4; l++) {
+                const layer = layerData[currentFrameIdx][l];
+                for (let y = 0; y < resSize; y++) {
+                    for (let x = 0; x < resSize; x++) {
+                        const col = layer[y * resSize + x];
+                        if (col && col !== '#00000000') {
+                            const mat = new THREE.MeshLambertMaterial({
+                                color: new THREE.Color(col),
+                                wireframe: voxelWireframe
+                            });
+                            
+                            for (let z = 0; z < voxelDepthExtrusion; z++) {
+                                const cube = new THREE.Mesh(boxGeo, mat);
+                                cube.position.set(x - offset, -(y - offset), z - (voxelDepthExtrusion / 2));
+                                threeVoxelGroup.add(cube);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateHoloSpeed(val) {
+            voxelRotSpeed = val / 1000;
+        }
+
+        function updateVoxelExtrusion(val) {
+            voxelDepthExtrusion = parseInt(val);
+            updateVoxelMeshFromCanvas();
+        }
+
+        function toggleWireframeVoxel() {
+            voxelWireframe = !voxelWireframe;
+            document.getElementById('wireframeBtn').innerText = voxelWireframe ? 'ON' : 'OFF';
+            updateVoxelMeshFromCanvas();
+        }
+
+        function triggerVoxelExplosion() {
+            AudioFX.playGen();
+            if (!threeVoxelGroup) return;
+            threeVoxelGroup.children.forEach(child => {
+                child.position.x += (Math.random() - 0.5) * 15;
+                child.position.y += (Math.random() - 0.5) * 15;
+                child.position.z += (Math.random() - 0.5) * 15;
+            });
+            setTimeout(updateVoxelMeshFromCanvas, 1200);
+        }
+
+        function drawProceduralQR() {
+            const qrCanvas = document.getElementById('qrCanvas');
+            if (!qrCanvas) return;
+            const ctx = qrCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 56, 56);
+            ctx.fillStyle = '#000000';
+
+            for (let y = 0; y < 14; y++) {
+                for (let x = 0; x < 14; x++) {
+                    if (Math.random() > 0.45) {
+                        ctx.fillRect(x * 4, y * 4, 4, 4);
+                    }
+                }
+            }
+        }
+
+        function updateCardDetails() {
+            const tag = document.getElementById('inputCardTag').value;
+            const rank = document.getElementById('inputCardRank').value;
+            document.getElementById('cardTagText').innerText = tag.toUpperCase() || 'GHOST_USER';
+            document.getElementById('cardRankText').innerText = rank.toUpperCase() || 'NETRUNNER PRIME';
+
+            const expCanvas = document.createElement('canvas');
+            expCanvas.width = resSize; expCanvas.height = resSize;
+            const ctx = expCanvas.getContext('2d');
+            for (let l = 0; l < 4; l++) {
+                const layer = layerData[currentFrameIdx][l];
+                for (let y = 0; y < resSize; y++) {
+                    for (let x = 0; x < resSize; x++) {
+                        const col = layer[y * resSize + x];
+                        if (col && col !== '#00000000') {
+                            ctx.fillStyle = col; ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+            }
+            document.getElementById('cardAvatarPreview').src = expCanvas.toDataURL();
+            drawProceduralQR();
+        }
+
+        function handleCardTilt(e) {
+            const card = document.getElementById('holoCardPreview');
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            card.style.transform = `perspective(1000px) rotateY(${x / 20}deg) rotateX(${-y / 20}deg)`;
+        }
+
+        function resetCardTilt() {
+            document.getElementById('holoCardPreview').style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg)';
+        }
+
+        function renderFullGallery() {
+            const grid = document.getElementById('fullGalleryGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                const card = document.createElement('div');
+                card.className = 'bg-cyber-panel border border-cyber-border p-3 rounded-xl hover:border-cyan-400 transition cursor-pointer flex flex-col items-center space-y-2 hud-corner-box';
+                card.innerHTML = `
+                    <div class="w-full aspect-square checkerboard-grid rounded-lg p-2 border border-cyber-border flex items-center justify-center">
+                        <i class="fa-solid fa-atom text-3xl text-cyan-400"></i>
+                    </div>
+                    <p class="text-xs font-bold text-white font-cyber">Quantum #${i}</p>
+                    <button onclick="switchView('studio')" class="w-full py-1 bg-cyber-card border border-cyber-border hover:bg-cyan-950 text-cyan-300 text-[10px] font-mono rounded">LOAD & REMIX</button>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        window.onload = function() {
+            studioCanvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                const coords = getCanvasCoords(e);
+                drawPixel(coords.x, coords.y);
+            });
+
+            studioCanvas.addEventListener('mousemove', (e) => {
+                if (isDrawing) {
+                    const coords = getCanvasCoords(e);
+                    drawPixel(coords.x, coords.y);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDrawing) { isDrawing = false; saveHistory(); }
+            });
+
+            studioCanvas.addEventListener('touchstart', (e) => {
+                isDrawing = true;
+                const coords = getCanvasCoords(e);
+                drawPixel(coords.x, coords.y);
+            });
+
+            studioCanvas.addEventListener('touchmove', (e) => {
+                if (isDrawing) {
+                    const coords = getCanvasCoords(e);
+                    drawPixel(coords.x, coords.y);
+                }
+            });
+
+            studioCanvas.addEventListener('touchend', () => {
+                if (isDrawing) { isDrawing = false; saveHistory(); }
+            });
+
+            loadPalette('cyber');
+            triggerHeroAIGen();
+            triggerStudioAIGen();
+        };
+    </script>
+</body>
+</html>
